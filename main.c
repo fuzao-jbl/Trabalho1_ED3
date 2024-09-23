@@ -1,5 +1,4 @@
-#include <stdio.h>
-#include "registro.h"
+#include "auxiliares.h"
 #include "funcionalidades.h"
 
 int main()
@@ -26,8 +25,10 @@ int main()
             select_from(arquivo);
             break;
         case 3:
+            select_where(arquivo);
             break;
         case 4:
+            remocao_logica(arquivo);
             break;
         case 5:
             break;
