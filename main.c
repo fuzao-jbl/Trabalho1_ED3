@@ -1,5 +1,6 @@
-#include "auxiliares.h"
+#include <stdio.h>
 #include "funcionalidades.h"
+#include "funcoes_fornecidas.h"
 
 int main()
 {
@@ -29,6 +30,7 @@ int main()
             break;
         case 4:
             remocao_logica(arquivo);
+            binarioNaTela(nome);
             break;
         case 5:
             break;

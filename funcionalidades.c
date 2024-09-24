@@ -84,6 +84,9 @@ void select_where(FILE* arquivo)
         else
             printf("\nNumero de paginas de disco: %d\n\n", cabecalho->nroPagDisco);
     }
+
+    // precisamos liberar o cabecalho
+    free(cabecalho);
 }
 
 // a funcao recebe um arquivo e executa a funcionalidade (4) do trabalho, que eh
@@ -92,7 +95,52 @@ void select_where(FILE* arquivo)
 // depois os campos e valores como especificado pelo trabalho
 void remocao_logica(FILE *arquivo)
 {
-    // recebe o numero de buscas que realizara
+    // perceba que aqui, no fundamental, apenas recebemos os criterios de remocao
+    // o que faz o codigo ser igual ao do select_where porque a forma como estamos
+    // recebendo eh igual, a unica mudanca eh o busca_e_ que passa a ser retira 
+    // ao inves de printa, o que tambem faz a formatacao da saida ser diferente
+
+    // vamos primeiro receber a fila
+    // precisamos receber o n para saber quantos criterios de selecao vao ter
     int n;
-    scanf("%d", &n);
+    scanf(" %d", &n);
+    // depois precisamos receber a entrada e separar a string nos espacos
+    char entrada[25*n];
+    fgets(entrada, sizeof(entrada), stdin);
+    // vamos criar uma fila
+    Fila *fila = cria_fila();
+    // vamos tokenizar separando pelos espacos " "
+    No *no = (No *)malloc(sizeof(No));
+    no->campo = strtok(entrada, " ");
+    no->valor = strtok(NULL, " ");
+    poe_na_fila(fila, no);
+    for (int i = 1; i < n; i++)
+    {
+        No *no = (No *)malloc(sizeof(No));
+        no->campo = strtok(NULL, " ");
+        no->valor = strtok(NULL, " ");
+        poe_na_fila(fila, no);
+    }
+
+    // agora vamos nos preparar para ler os dados do arquivo
+    // alocamos a memoria do cabecalho
+    Cabecalho *cabecalho = (Cabecalho *)malloc(sizeof(Cabecalho));
+    // lemos o cabecalho do arquivo
+    le_cabecalho(cabecalho, arquivo);
+  
+    // iteramos sobre cada busca 
+    int campo;
+    for (int i = 0; i < n; i++)
+    {
+        // vamos receber o numero do campo para conseguir fazer a busca
+        campo = int_campo(fila->cabeca->campo);
+        // AQUI QUE O CODIGO DEIXA DE SER IGUAL AO DO SELECT_WHERE
+        busca_e_retira(arquivo, cabecalho->topo, campo, fila->cabeca->valor);
+        // a cabeca da fila se torna o proximo da antiga cabeca e liberamos aquele
+        // no
+        proximo_na_fila(fila);
+    }
+
+    // precisamos liberar o cabecalho
+    free(cabecalho);
 }

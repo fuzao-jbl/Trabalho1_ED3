@@ -239,6 +239,137 @@ int busca_str_printa(FILE *arquivo, int campo, char *valor)
     return achou_algo;
 }
 
+// o codigo realmente novo eh o remove()
+// ele vai receber o arquivo e o byte offset do registro a ser removido, a partir
+// disso vamos realizar a remocao logica desse arquivo
+void remove_especie(FILE *arquivo, int topo, int offset)
+{
+    // primeiro precisamos calcular o rrn do registro que estamos tirando
+    // no caso 1600 eh da primeira pagina, que eh cabecalho, e o 160 eh 
+    // o tamanho do registro
+    int rrn = (offset - 1600)/160;
+    int nroRegRem;
+    // marcamos ele como removido e guardamos no encadenamento o antigo topo
+    char sim = '1';
+    char lixo = '$';
+    // arruma o ponteiro para o campo "topo" do cabecalho e salva o novo rrn nele
+    fseek(arquivo, 1, SEEK_SET);
+    fwrite(&rrn, 4, 1, arquivo);
+    // vamos ler o numero de vezes que algum registro foi removido e incrementamos
+    fseek(arquivo, 9, SEEK_SET);
+    fread(&nroRegRem, 4, 1, arquivo);
+    nroRegRem++;
+    fseek(arquivo, 9, SEEK_SET);
+    fwrite(&nroRegRem, 4, 1, arquivo);
+    // agora vamos para o registro a ser eliminado
+    fseek(arquivo, offset, SEEK_SET);
+    fwrite(&sim, 1, 1, arquivo);
+    fwrite(&topo, 4, 1, arquivo);
+    // lembrando que o resto do registro tem 160 - 1 - 4 = 155 bytes
+    fwrite(&lixo, 1, 155, arquivo);
+
+}
+
+// eh o equivalente ao busca_int_printa mas ao inves de printar, remove ele logicamente
+void busca_int_retira(FILE *arquivo, int topo, int campo, int valor)
+{   
+    // como vamos apenas fazer a leitura buscando o valor desejado, essa funcao
+    // eh semelhante a busca_int_printa, mudando o printa_formatado por remove
+    // alem das questoes de formatacao que nao sao mais necessarias
+
+    // primeiro aloca registro temporario
+    Registro *registro = (Registro *)malloc(sizeof(Registro));
+    // pegamos tamanho para saber quando terminar a leitura
+    int tamanho = tamanho_bytes(arquivo);
+    // pegamos as informacoes e printamos se o campo estivar com o int certo
+    for (int offset = 1600; offset < tamanho; offset += 160)
+    {
+        le_registro(registro, arquivo, offset);
+        if (!removido(registro))
+            switch (campo)
+            {
+                case 0:
+                    if (registro->populacao == valor)
+                        remove_especie(arquivo, topo, offset);
+                    break;
+                case 3:
+                    if (registro->velocidade == valor)
+                        remove_especie(arquivo, topo, offset);
+                    break;
+            }
+    }
+    // por fim, liberamos o registro temporario
+    libera_registro(registro);
+}
+
+// eh o equivalente ao busca_float_printa mas ao inves de printar, remove ele logicamente
+void busca_float_retira(FILE *arquivo, int topo, float valor)
+{   
+    // como vamos apenas fazer a leitura buscando o valor desejado, essa funcao
+    // eh semelhante a busca_float_printa, mudando o printa_formatado por remove
+    // alem das questoes de formatacao que nao sao mais necessarias
+    
+    // primeiro aloca registro temporario
+    Registro *registro = (Registro *)malloc(sizeof(Registro));
+    int tamanho = tamanho_bytes(arquivo);
+    // pegamos as informacoes e printamos se o campo estivar com o int certo
+    for (int offset = 1600; offset < tamanho; offset += 160)
+    {
+        le_registro(registro, arquivo, offset);
+        if (!removido(registro) && registro->tamanho == valor)
+            remove_especie(arquivo, topo, offset); 
+    }
+    // por fim, liberamos o registro temporario
+    libera_registro(registro);
+}
+
+// eh o equivalente ao busca_str_printa mas ao inves de printar, remove ele logicamente
+void busca_str_retira(FILE *arquivo, int topo, int campo, char *valor)
+{   
+    // como vamos apenas fazer a leitura buscando o valor desejado, essa funcao
+    // eh semelhante a busca_float_printa, mudando o printa_formatado por remove
+    // alem das questoes de formatacao que nao sao mais necessarias
+    
+    // primeiro aloca registro temporario
+    Registro *registro = (Registro *)malloc(sizeof(Registro));
+    int tamanho = tamanho_bytes(arquivo);
+    // pegamos as informacoes e printamos se o campo estivar com o int certo
+    for (int offset = 1600; offset < tamanho; offset += 160)
+    {
+        le_registro(registro, arquivo, offset);
+        if (!removido(registro))
+            switch (campo)
+            {
+                case 4:
+                    if (strcmp(registro->nome.valor, valor) == 0)
+                        remove_especie(arquivo, topo, offset); 
+                    break;
+                case 5:
+                    if (strcmp(registro->especie.valor, valor) == 0)
+                        remove_especie(arquivo, topo, offset); 
+                    break;
+                case 6:
+                    if (strcmp(registro->habitat.valor, valor) == 0)
+                        remove_especie(arquivo, topo, offset); 
+                    break;
+                case 7:
+                    if (strcmp(registro->tipo.valor, valor) == 0)
+                        remove_especie(arquivo, topo, offset); 
+                    break;
+                case 8:
+                    if (strcmp(registro->dieta.valor, valor) == 0)
+                        remove_especie(arquivo, topo, offset); 
+                    break;
+                case 9:
+                    if (strcmp(registro->alimento.valor, valor) == 0)
+                        remove_especie(arquivo, topo, offset); 
+                    break;
+            }
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////////
+
 /////////////////////////////////////////////////////////////////////////////////////////////
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -320,4 +451,26 @@ void busca_e_printa(FILE *arquivo, int campo, char *valor)
     if (!achou_algo)
         printf("Registro inexistente.\n");
 }
+
+// a seguinte funcao vai buscar no arquivo o registro que possui o campo com o valor
+// especificado e vai remove-los logicamente, ou seja, vai marca-lo como logicamente
+// removivel e o rrn do proximo na pilha e vai marcar com lixo '$' em todo o resto
+void busca_e_retira(FILE *arquivo, int topo, int campo, char *valor)
+{
+    // perceba que a implementacao dessa parte eh quase igual ao do busca_e_printa
+    // mudando apenas as funcoes busca_x_printa porque vamos apenas ver qual campo
+    // estamos selecionando para fazer a correta transformacao do str
+    // claro, outra mudanca eh o int achou_algo que era importante para a formatacao
+    // mas nao eh mais agora
+
+    // dependendo do tipo de valor que queremos buscar, chamamos uma funcao que realiza
+    // essa busca especificamente para esse tipo 
+    if ((campo == 0) || (campo == 3))
+        busca_int_retira(arquivo, topo, campo, atoi(valor));   // atoi(char *) transforma string em int
+    else if (campo == 1)
+        busca_float_retira(arquivo, topo, atof(valor));        // afor(char *) transform string em float
+    else 
+        busca_str_retira(arquivo, topo, campo, sem_aspas(valor));
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////

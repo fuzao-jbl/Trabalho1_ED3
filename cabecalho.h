@@ -18,4 +18,6 @@ typedef struct
 // cabecalho do arquivo lido da struct cabecalho 
 void le_cabecalho(Cabecalho *cabecalho, FILE *arquivo);
 
+void printa_cabecalho(Cabecalho *cabecalho);
+
 #endif

@@ -12,3 +12,13 @@ void le_cabecalho(Cabecalho *cabecalho, FILE *arquivo)
     fread(&cabecalho->nroPagDisco, 4, 1, arquivo);
     fread(&cabecalho->qttCompacta, 4, 1, arquivo);
 }
+
+void printa_cabecalho(Cabecalho *cabecalho)
+{
+    printf("status: %c\n", cabecalho->status);
+    printf("topo: %d\n", cabecalho->topo);
+    printf("proxRRN: %d\n", cabecalho->proxRRN);
+    printf("nroRegRem: %d\n", cabecalho->nroRegRem);
+    printf("nroPagDisco: %d\n", cabecalho->nroPagDisco);
+    printf("qttCompacta: %d\n", cabecalho->qttCompacta);
+}

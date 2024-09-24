@@ -54,11 +54,24 @@ int busca_float_printa(FILE *arquivo, float valor);
 // retorna 1 se encontrou algum registro e 0 caso contrario
 int busca_str_printa(FILE *arquivo, int campo, char *valor);
 
+// o codigo realmente novo eh o remove()
+// ele vai receber o arquivo e o byte offset do registro a ser removido, a partir
+// disso vamos realizar a remocao logica desse arquivo
+void remove_especie(FILE *arquivo, int topo, int offset);
+
+// eh o equivalente ao busca_int_printa mas ao inves de printar, remove ele logicamente
+void busca_int_retira(FILE *arquivo, int topo, int campo, int valor);   
+
+// eh o equivalente ao busca_float_printa mas ao inves de printar, remove ele logicamente
+void busca_float_retira(FILE *arquivo, int topo, float valor);   
+
+// eh o equivalente ao busca_str_printa mas ao inves de printar, remove ele logicamente
+void busca_str_retira(FILE *arquivo, int topo, int campo, char *valor);   
+
 ///////////////////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////////////////
 // PUBLICO /////////////////////////////////////////////////////////////
-// /////////////////////////////////////////////////////////////////////////////////
 
 // essa funcao recebe o ponteiro de um arquivo, o byte offset do registro,
 // e o ponteiro do registro que salvara os dados
@@ -74,6 +87,12 @@ void libera_registro(Registro *registro);
 // a seguinte funcao vai buscar no arquivo o registro que possui o campo com o valor
 // especificado e vai printar todos os registros cujos valores baterem
 void busca_printa(FILE *arquivo, int campo, char *valor);
+
+// a seguinte funcao vai buscar no arquivo o registro que possui o campo com o valor
+// especificado e vai remove-los logicamente, ou seja, vai marca-lo como logicamente
+// removivel e o rrn do proximo na pilha e vai marcar com lixo '$' em todo o resto
+void busca_e_retira(FILE *arquivo, int topo, int campo, char *valor);
+
 ///////////////////////////////////////////////////////////////////////////////////
 
 #endif
