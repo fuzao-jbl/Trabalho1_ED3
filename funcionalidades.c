@@ -111,7 +111,7 @@ void remocao_logica(FILE *arquivo)
     Fila *fila = cria_fila();
     // vamos tokenizar separando pelos espacos " "
     No *no = (No *)malloc(sizeof(No));
-    no->campo = strtok(entrada, " ");
+    no->campo = strtok(entrada, " ");   // trocar por strsep dps, da pau por causa do csv
     no->valor = strtok(NULL, " ");
     poe_na_fila(fila, no);
     for (int i = 1; i < n; i++)
@@ -135,7 +135,7 @@ void remocao_logica(FILE *arquivo)
         // vamos receber o numero do campo para conseguir fazer a busca
         campo = int_campo(fila->cabeca->campo);
         // AQUI QUE O CODIGO DEIXA DE SER IGUAL AO DO SELECT_WHERE
-        busca_e_retira(arquivo, cabecalho->topo, campo, fila->cabeca->valor);
+        busca_e_retira(arquivo, cabecalho, campo, fila->cabeca->valor);
         // a cabeca da fila se torna o proximo da antiga cabeca e liberamos aquele
         // no
         proximo_na_fila(fila);

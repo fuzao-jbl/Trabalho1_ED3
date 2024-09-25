@@ -242,7 +242,7 @@ int busca_str_printa(FILE *arquivo, int campo, char *valor)
 // o codigo realmente novo eh o remove()
 // ele vai receber o arquivo e o byte offset do registro a ser removido, a partir
 // disso vamos realizar a remocao logica desse arquivo
-void remove_especie(FILE *arquivo, int topo, int offset)
+void remove_especie(FILE *arquivo, Cabecalho *cabeca, int offset)
 {
     // primeiro precisamos calcular o rrn do registro que estamos tirando
     // no caso 1600 eh da primeira pagina, que eh cabecalho, e o 160 eh 
@@ -264,14 +264,15 @@ void remove_especie(FILE *arquivo, int topo, int offset)
     // agora vamos para o registro a ser eliminado
     fseek(arquivo, offset, SEEK_SET);
     fwrite(&sim, 1, 1, arquivo);
-    fwrite(&topo, 4, 1, arquivo);
+    fwrite(&cabeca->topo, 4, 1, arquivo);
     // lembrando que o resto do registro tem 160 - 1 - 4 = 155 bytes
-    fwrite(&lixo, 1, 155, arquivo);
-
+    for (int i = 0; i < 155; i++)
+        fwrite(&lixo, 1, 1, arquivo);
+    cabeca->topo = rrn;
 }
 
 // eh o equivalente ao busca_int_printa mas ao inves de printar, remove ele logicamente
-void busca_int_retira(FILE *arquivo, int topo, int campo, int valor)
+void busca_int_retira(FILE *arquivo, Cabecalho *cabeca, int campo, int valor)
 {   
     // como vamos apenas fazer a leitura buscando o valor desejado, essa funcao
     // eh semelhante a busca_int_printa, mudando o printa_formatado por remove
@@ -290,11 +291,11 @@ void busca_int_retira(FILE *arquivo, int topo, int campo, int valor)
             {
                 case 0:
                     if (registro->populacao == valor)
-                        remove_especie(arquivo, topo, offset);
+                        remove_especie(arquivo, cabeca, offset); 
                     break;
                 case 3:
                     if (registro->velocidade == valor)
-                        remove_especie(arquivo, topo, offset);
+                        remove_especie(arquivo, cabeca, offset); 
                     break;
             }
     }
@@ -303,7 +304,7 @@ void busca_int_retira(FILE *arquivo, int topo, int campo, int valor)
 }
 
 // eh o equivalente ao busca_float_printa mas ao inves de printar, remove ele logicamente
-void busca_float_retira(FILE *arquivo, int topo, float valor)
+void busca_float_retira(FILE *arquivo, Cabecalho *cabeca, float valor)
 {   
     // como vamos apenas fazer a leitura buscando o valor desejado, essa funcao
     // eh semelhante a busca_float_printa, mudando o printa_formatado por remove
@@ -317,14 +318,14 @@ void busca_float_retira(FILE *arquivo, int topo, float valor)
     {
         le_registro(registro, arquivo, offset);
         if (!removido(registro) && registro->tamanho == valor)
-            remove_especie(arquivo, topo, offset); 
+            remove_especie(arquivo, cabeca, offset); 
     }
     // por fim, liberamos o registro temporario
     libera_registro(registro);
 }
 
 // eh o equivalente ao busca_str_printa mas ao inves de printar, remove ele logicamente
-void busca_str_retira(FILE *arquivo, int topo, int campo, char *valor)
+void busca_str_retira(FILE *arquivo, Cabecalho *cabeca, int campo, char *valor)
 {   
     // como vamos apenas fazer a leitura buscando o valor desejado, essa funcao
     // eh semelhante a busca_float_printa, mudando o printa_formatado por remove
@@ -342,27 +343,27 @@ void busca_str_retira(FILE *arquivo, int topo, int campo, char *valor)
             {
                 case 4:
                     if (strcmp(registro->nome.valor, valor) == 0)
-                        remove_especie(arquivo, topo, offset); 
+                        remove_especie(arquivo, cabeca, offset); 
                     break;
                 case 5:
                     if (strcmp(registro->especie.valor, valor) == 0)
-                        remove_especie(arquivo, topo, offset); 
+                        remove_especie(arquivo, cabeca, offset); 
                     break;
                 case 6:
                     if (strcmp(registro->habitat.valor, valor) == 0)
-                        remove_especie(arquivo, topo, offset); 
+                        remove_especie(arquivo, cabeca, offset); 
                     break;
                 case 7:
                     if (strcmp(registro->tipo.valor, valor) == 0)
-                        remove_especie(arquivo, topo, offset); 
+                        remove_especie(arquivo, cabeca, offset); 
                     break;
                 case 8:
                     if (strcmp(registro->dieta.valor, valor) == 0)
-                        remove_especie(arquivo, topo, offset); 
+                        remove_especie(arquivo, cabeca, offset); 
                     break;
                 case 9:
                     if (strcmp(registro->alimento.valor, valor) == 0)
-                        remove_especie(arquivo, topo, offset); 
+                        remove_especie(arquivo, cabeca, offset); 
                     break;
             }
     }
@@ -455,7 +456,7 @@ void busca_e_printa(FILE *arquivo, int campo, char *valor)
 // a seguinte funcao vai buscar no arquivo o registro que possui o campo com o valor
 // especificado e vai remove-los logicamente, ou seja, vai marca-lo como logicamente
 // removivel e o rrn do proximo na pilha e vai marcar com lixo '$' em todo o resto
-void busca_e_retira(FILE *arquivo, int topo, int campo, char *valor)
+void busca_e_retira(FILE *arquivo, Cabecalho *cabeca, int campo, char *valor)
 {
     // perceba que a implementacao dessa parte eh quase igual ao do busca_e_printa
     // mudando apenas as funcoes busca_x_printa porque vamos apenas ver qual campo
@@ -464,13 +465,14 @@ void busca_e_retira(FILE *arquivo, int topo, int campo, char *valor)
     // mas nao eh mais agora
 
     // dependendo do tipo de valor que queremos buscar, chamamos uma funcao que realiza
-    // essa busca especificamente para esse tipo 
+    // essa busca especificamente para esse tipo
+    fseek(arquivo, 1600, SEEK_SET); 
     if ((campo == 0) || (campo == 3))
-        busca_int_retira(arquivo, topo, campo, atoi(valor));   // atoi(char *) transforma string em int
+        busca_int_retira(arquivo, cabeca, campo, atoi(valor));   // atoi(char *) transforma string em int
     else if (campo == 1)
-        busca_float_retira(arquivo, topo, atof(valor));        // afor(char *) transform string em float
+        busca_float_retira(arquivo, cabeca, atof(valor));        // afor(char *) transform string em float
     else 
-        busca_str_retira(arquivo, topo, campo, sem_aspas(valor));
+        busca_str_retira(arquivo, cabeca, campo, sem_aspas(valor));
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////

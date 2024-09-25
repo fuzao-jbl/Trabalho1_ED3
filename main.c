@@ -1,6 +1,3 @@
-// Pedro Fuziwara Filho - 13676840 - 100%
-// Murilo
-
 #include <stdio.h>
 #include "funcionalidades.h"
 #include "funcoes_fornecidas.h"
