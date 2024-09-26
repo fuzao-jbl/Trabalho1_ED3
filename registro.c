@@ -387,10 +387,12 @@ void le_registro(Registro *registro, FILE *arquivo, int offset)
     fread(&registro->removido, 1, 1, arquivo);
     fread(&registro->encadenamento, 4, 1, arquivo);
     // toda especie precisa ter um nome valido, salvamos posicao e vemos se especie comeca com $
-    offset = ftell(arquivo);
+    int temporario = ftell(arquivo);
+    fseek(arquivo, temporario + 13, SEEK_SET);
     if (fgetc(arquivo) == '$')
         return;
-    fseek(arquivo, offset, SEEK_SET); 
+    // volta a ler o registro
+    fseek(arquivo, temporario, SEEK_SET); 
     fread(&registro->populacao, 4, 1, arquivo);
     fread(&registro->tamanho, 4, 1, arquivo);
     fread(&registro->unidadeMedida, 1, 1, arquivo);

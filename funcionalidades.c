@@ -19,12 +19,14 @@ void select_from(FILE *arquivo)
     {
         le_registro(registro_temporario, arquivo, offset);
         if (!removido(registro_temporario))
+        {
             printa_formatado(registro_temporario);
-        printf("\n");
+            printf("\n");
+        }
     }
 
     // printamos numero de paginas
-    printf("Numero de paginas de disco: %d\n", cabecalho->nroPagDisco);
+    printf("Numero de paginas de disco: %d\n\n", cabecalho->nroPagDisco);
 
     // por fim libera o registro temporario
     libera_registro(registro_temporario);
@@ -79,10 +81,7 @@ void select_where(FILE* arquivo)
         // no
         proximo_na_fila(fila);
         // printamos numero de paginas
-        if (i == n-1)
-            printf("\nNumero de paginas de disco: %d\n", cabecalho->nroPagDisco);
-        else
-            printf("\nNumero de paginas de disco: %d\n\n", cabecalho->nroPagDisco);
+        printf("\nNumero de paginas de disco: %d\n\n", cabecalho->nroPagDisco);
     }
 
     // precisamos liberar o cabecalho
